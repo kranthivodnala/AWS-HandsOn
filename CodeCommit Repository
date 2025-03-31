@@ -1,0 +1,89 @@
+# DevOps Repository Setup Guide
+
+This document provides step-by-step instructions for setting up and using the `devops-repo` repository in AWS CodeCommit.
+
+## Steps to Set Up the Repository
+
+### 1. Create Repository Using AWS Console
+1. Navigate to the [AWS CodeCommit Console](https://console.aws.amazon.com/codecommit/home).
+2. Click on **Create repository**.
+3. Enter `devops-repo` as the repository name.
+4. Click **Create** to finalize the setup.
+
+### 2. Create SSH Key in Terminal
+Run the following command to generate an SSH key:
+```sh
+ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+```
+This will create `id_rsa` (private key) and `id_rsa.pub` (public key) under `~/.ssh/`.
+
+### 3. Upload SSH Key to IAM User
+1. Navigate to **AWS IAM Console**.
+2. Select the IAM user that will access CodeCommit.
+3. Go to the **Security credentials** tab.
+4. Under **SSH keys for AWS CodeCommit**, click **Upload SSH public key**.
+5. Paste the contents of `~/.ssh/id_rsa.pub`.
+6. Note down the SSH key ID provided by AWS.
+
+### 4. Create a Config File Under .ssh Folder
+Create or edit the SSH config file:
+```sh
+nano ~/.ssh/config
+```
+Add the following lines:
+```sh
+Host git-codecommit.*.amazonaws.com
+    User <SSH_KEY_ID>
+    IdentityFile ~/.ssh/id_rsa
+```
+Replace `<SSH_KEY_ID>` with the actual SSH key ID from AWS.
+Save and exit the file, then set correct permissions:
+```sh
+chmod 600 ~/.ssh/config
+```
+
+### 5. Clone the Repository
+Retrieve the SSH clone URL from CodeCommit and run:
+```sh
+git clone ssh://git-codecommit.<region>.amazonaws.com/v1/repos/devops-repo
+```
+Replace `<region>` with your AWS region (e.g., `us-east-1`).
+
+### 6. Add the Files
+Copy files into the cloned repository directory:
+```sh
+cp -r /root/pyapp/* devops-repo/
+cd devops-repo
+```
+Stage the files:
+```sh
+git add .
+```
+
+### 7. Configure the Email and Username
+Set up Git user details:
+```sh
+git config --global user.name "Your Name"
+git config --global user.email "your-email@example.com"
+```
+
+### 8. Commit and Push the Changes
+Commit the changes:
+```sh
+git commit -m "Added initial pyapp files"
+```
+Push the changes to CodeCommit:
+```sh
+git push origin main
+```
+
+## Authentication & Troubleshooting
+Ensure SSH authentication is working:
+```sh
+ssh -v git-codecommit.<region>.amazonaws.com
+```
+If you face permission issues, adjust SSH key permissions:
+```sh
+chmod 600 ~/.ssh/id_rsa
+chmod 644 ~/.ssh/id_rsa.pub
+```
